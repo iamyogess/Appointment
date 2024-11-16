@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import JWT from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
@@ -25,12 +27,29 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     normalUser: { type: Boolean, default: true },
     admin: { type: Boolean, default: false },
-    guide: { type: Boolean, default: false },
+    verified: { type: Boolean, default: false },
     otp: { type: Number },
     officialDocuments: { type: String },
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", function (next) {
+  if (this.isModified("password")) {
+    this.password = bcrypt.hash(this.password, 10);
+    return next();
+  }
+});
+
+userSchema.methods.generateJWT = function () {
+  return JWT.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
+
+userSchema.methods.comparePassword = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
+};
 
 const UserModel = mongoose.model("User", userSchema);
 
