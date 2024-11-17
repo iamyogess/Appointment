@@ -80,4 +80,38 @@ const loginUser = async (req, res, next) => {
   }
 };
 
-export { registerUser, loginUser };
+const getUserProfile = async (req, res, next) => {
+  try {
+    let user = await UserModel.findOne({ _id: req.user._id });
+    if (!user) {
+      let err = new Error("User not found!");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    const token = await user.generateJWT();
+
+    return res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email ? user.email : user.phoneNo,
+      profilePicture: user.profilePicture,
+      verified: user.verified,
+      admin: user.admin,
+      guide: user.guide,
+      isUser: user.isUser,
+      token: token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUserProfile = async (req, res, next) => {};
+const uploadProfilePicture = async (req, res, next) => {};
+const requestGuidePermission = async (req, res, next) => {};
+const grantGuidePermission = async (req, res, next) => {};
+const revokeGuidePermission = async (req, res, next) => {};
+const uploadUserDocuments = async (req, res, next) => {};
+
+export { registerUser, loginUser, getUserProfile };

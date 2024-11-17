@@ -9,32 +9,38 @@ const isUser = async (req, res, next) => {
     try {
       const token = req.headers.authorization.split(" ")[1];
       const { id } = JWT.verify(token, process.env.JWT_SECRET);
-      req.user = await UserModel.findById({ id }).select("-password");
+      req.user = await UserModel.findById(id).select("-password"); // Pass `id` directly
+      if (!req.user) {
+        let err = new Error("User not found!");
+        err.statusCode = 404;
+        return next(err);
+      }
       next();
     } catch (error) {
-      let err = new Error("Not authorized!, token failed!");
+      let err = new Error("Not authorized, token failed!");
       err.statusCode = 401;
       next(err);
     }
   } else {
-    let error = new Error("Not authorized!, No token!");
+    let error = new Error("Not authorized, no token provided!");
     error.statusCode = 401;
     next(error);
   }
 };
 
-const isAdmin = () => {
+const isAdmin = (req, res, next) => {
   if (req.user && req.user.admin) {
-    next();
+    return next(); // Add `return` to ensure the function doesn't continue after calling `next()`
   } else {
     let err = new Error("Not authorized as admin!");
     err.statusCode = 401;
     next(err);
   }
 };
-const isGuide = () => {
+
+const isGuide = (req, res, next) => {
   if (req.user && req.user.guide) {
-    next();
+    return next();
   } else {
     let err = new Error("Not authorized as guide!");
     err.statusCode = 401;
