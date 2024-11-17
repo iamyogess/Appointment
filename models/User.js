@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
+      sparse: true,
       validate: {
         validator: function (value) {
           return value || this.phoneNo;
@@ -15,8 +16,9 @@ const userSchema = new mongoose.Schema(
       },
     },
     phoneNo: {
-      type: BigInt,
+      type: String,
       unique: true,
+      sparse: true,
       validate: {
         validator: function (value) {
           return value || this.email;

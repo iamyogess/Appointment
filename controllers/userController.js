@@ -33,7 +33,7 @@ const registerUser = async (req, res, next) => {
       otp,
     });
 
-    let token = await user.generateJWT();
+    let token = await newUser.generateJWT();
 
     const savedUser = await newUser.save();
 
@@ -202,9 +202,101 @@ const uploadProfilePicture = async (req, res, next) => {
     next(error);
   }
 };
-const requestGuidePermission = async (req, res, next) => {};
-const grantGuidePermission = async (req, res, next) => {};
-const revokeGuidePermission = async (req, res, next) => {};
+
+const requestGuidePermission = async (req, res, next) => {
+  try {
+    const user = await UserModel.findById(req.user._id);
+
+    if (!user) {
+      res.status(404).json({ message: "User not found!" });
+    }
+
+    if (user.guide) {
+      res.status(404).json({ message: "You are already a guide!" });
+    }
+
+    user.verified = false;
+    user.guide = true;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ message: "Guide request submitted successfully." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const grantGuidePermission = async (req, res, next) => {
+  try {
+    const user = await UserModel.findById(req.params.id);
+
+    if (!user) {
+      res.status(404).json({ message: "User not found!" });
+    }
+
+    user.verified = true;
+    user.guide = true;
+    await user.save();
+
+    return res.status(200).json({ message: "Guide approved successfully!" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const revokeGuidePermission = async (req, res, next) => {
+  try {
+    const user = await UserModel.findById(req.params.id);
+
+    if (!user) {
+      res.status(404).json({ message: "User not found!" });
+    }
+
+    user.verified = false;
+    user.guide = false;
+
+    user.save();
+
+    return res
+      .status(200)
+      .json({ message: "Guide status revoked successfully!" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getRequestedGuides = async (req, res, next) => {
+  try {
+    const requestedGuides = await UserModel.find({
+      guide: true,
+      verified: false,
+    });
+    return res.status(200).json({
+      message: "Requested guides retrieved successfully.",
+      requestedGuides,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getApprovedGuides = async (req, res, next) => {
+  try {
+    const approvedGuides = await UserModel.find({
+      guide: true,
+      verified: true,
+    });
+    return res.status(200).json({
+      message: "Approved guides retrieved successfully.",
+      approvedGuides,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 const uploadUserDocuments = async (req, res, next) => {};
 
 export {
@@ -213,4 +305,9 @@ export {
   getUserProfile,
   updatedProfileDetails,
   uploadProfilePicture,
+  requestGuidePermission,
+  grantGuidePermission,
+  revokeGuidePermission,
+  getRequestedGuides,
+  getApprovedGuides,
 };
