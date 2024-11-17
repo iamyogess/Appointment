@@ -1,15 +1,15 @@
-import UserModel from "../models/User";
+import UserModel from "../models/User.js";
 
 const registerUser = async (req, res, next) => {
   try {
     const { name, email, phoneNo, password, otp } = req.body;
 
-    if (!name || !password || !otp || !email || !phoneNo) {
+    if (!name || !password || (!email && !phoneNo)) {
       return res
         .status(400)
         .json({ message: "All fields are required! Fill the form correctly!" });
     }
-
+    
     let user;
 
     if (email) {
@@ -25,7 +25,7 @@ const registerUser = async (req, res, next) => {
     }
 
     const newUser = new UserModel({
-      nama,
+      name,
       email: email || null,
       phoneNo: phoneNo || null,
       password,
