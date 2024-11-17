@@ -1,4 +1,5 @@
 import UserModel from "../models/User.js";
+import uploadPicture from "./../middlewares/uploadPictureMIddleware.js";
 
 const registerUser = async (req, res, next) => {
   try {
@@ -107,11 +108,109 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
-const updateUserProfile = async (req, res, next) => {};
-const uploadProfilePicture = async (req, res, next) => {};
+const updatedProfileDetails = async (req, res, next) => {
+  try {
+    let user = await UserModel.findOne({ _id: req.user._id });
+
+    if (!user) {
+      let err = new Error("User not found!");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.phoneNo = req.body.phoneNo || user.phoneNo;
+
+    if (req.body.password) {
+      if (req.body.password.length < 6) {
+        let err = new Error("Password length must be at least 6 characters.");
+        err.statusCode = 400; // Bad request status code
+        throw err;
+      }
+      user.password = req.body.password;
+    }
+
+    const updatedProfileDetails = await user.save();
+    const token = await user.generateJWT();
+
+    return res.status(200).json({
+      message: "Profile updated successfully!",
+      _id: updatedProfileDetails._id,
+      name: updatedProfileDetails.name,
+      email: updatedProfileDetails.email
+        ? updatedProfileDetails.email
+        : updatedProfileDetails.phoneNo,
+      verified: updatedProfileDetails.verified,
+      token: token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const uploadProfilePicture = async (req, res, next) => {
+  try {
+    const upload = uploadPicture.single("profilePicture");
+
+    upload(req, res, async function (err) {
+      if (err) {
+        throw new Error(
+          "An unknown error ocurred when uploading " + err.message
+        );
+      } else {
+        if (req.file) {
+          let filename;
+          let updatedUser = await UserModel.findById(req.user._id);
+          filename = updatedUser.avatar;
+          if (filename) {
+            fileRemover(filename);
+          }
+
+          updatedUser.avatar = req.file.filename;
+          await updatedUser.save();
+
+          res.json({
+            _id: updatedUser._id,
+            avatar: updatedUser.avatar,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            verified: updatedUser.verified,
+            admin: updatedUser.admin,
+            token: await updatedUser.generateJWT(),
+          });
+        } else {
+          let filename;
+          let updatedUser = await User.findById(req.user._id);
+          filename = updatedUser.avatar;
+          updatedUser.avatar = "";
+          await updatedUser.save();
+          fileRemover(filename);
+          res.json({
+            _id: updatedUser._id,
+            avatar: updatedUser.avatar,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            verified: updatedUser.verified,
+            admin: updatedUser.admin,
+            token: await updatedUser.generateJWT(),
+          });
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 const requestGuidePermission = async (req, res, next) => {};
 const grantGuidePermission = async (req, res, next) => {};
 const revokeGuidePermission = async (req, res, next) => {};
 const uploadUserDocuments = async (req, res, next) => {};
 
-export { registerUser, loginUser, getUserProfile };
+export {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updatedProfileDetails,
+  uploadProfilePicture,
+};

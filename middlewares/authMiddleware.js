@@ -9,7 +9,7 @@ const isUser = async (req, res, next) => {
     try {
       const token = req.headers.authorization.split(" ")[1];
       const { id } = JWT.verify(token, process.env.JWT_SECRET);
-      req.user = await UserModel.findById(id).select("-password"); // Pass `id` directly
+      req.user = await UserModel.findById(id).select("-password");
       if (!req.user) {
         let err = new Error("User not found!");
         err.statusCode = 404;
@@ -30,8 +30,7 @@ const isUser = async (req, res, next) => {
 
 const isAdmin = (req, res, next) => {
   if (req.user && req.user.admin) {
-    return next(); // Add `return` to ensure the function doesn't continue after calling `next()`
-  } else {
+    return next(); 
     let err = new Error("Not authorized as admin!");
     err.statusCode = 401;
     next(err);
