@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
     verified: { type: Boolean, default: false },
     otp: { type: Number },
     documents: { type: [String] },
+    about: { type: String },
   },
   { timestamps: true }
 );

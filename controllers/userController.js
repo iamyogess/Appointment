@@ -121,6 +121,7 @@ const updatedProfileDetails = async (req, res, next) => {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.phoneNo = req.body.phoneNo || user.phoneNo;
+    user.about = req.body.about || user.about;
 
     if (req.body.password) {
       if (req.body.password.length < 6) {
@@ -348,5 +349,5 @@ export {
   revokeGuidePermission,
   getRequestedGuides,
   getApprovedGuides,
-  uploadUserDocuments
+  uploadUserDocuments,
 };
