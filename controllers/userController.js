@@ -296,8 +296,46 @@ const getApprovedGuides = async (req, res, next) => {
   }
 };
 
+const uploadUserDocuments = async (req, res, next) => {
+  try {
+    const upload = uploadPicture.array("userDocuments", 3);
 
-const uploadUserDocuments = async (req, res, next) => {};
+    upload(req, res, async function (err) {
+      if (err) {
+        throw new Error(
+          "An unknown error occurred when uploading: " + err.message
+        );
+      } else {
+        if (req.files && req.files.length > 0) {
+          let updatedUser = await UserModel.findById(req.user._id);
+
+          if (updatedUser.documents && updatedUser.documents.length > 0) {
+            updatedUser.documents.forEach((filename) => {
+              fileRemover(filename);
+            });
+          }
+
+          updatedUser.documents = req.files.map((file) => file.filename);
+          await updatedUser.save();
+
+          res.status(200).json({
+            _id: updatedUser._id,
+            documents: updatedUser.documents,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            verified: updatedUser.verified,
+            admin: updatedUser.admin,
+            token: await updatedUser.generateJWT(),
+          });
+        } else {
+          res.status(400).json({ message: "No files were uploaded." });
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export {
   registerUser,
@@ -310,4 +348,5 @@ export {
   revokeGuidePermission,
   getRequestedGuides,
   getApprovedGuides,
+  uploadUserDocuments
 };
