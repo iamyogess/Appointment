@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     guide: { type: Boolean, default: false },
     verified: { type: Boolean, default: false },
     otp: { type: Number },
-    officialDocuments: { type: String },
+    documents: { type: [String] },
   },
   { timestamps: true }
 );

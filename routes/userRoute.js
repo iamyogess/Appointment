@@ -10,6 +10,7 @@ import {
   revokeGuidePermission,
   updatedProfileDetails,
   uploadProfilePicture,
+  uploadUserDocuments,
 } from "../controllers/userController.js";
 import { isAdmin, isUser } from "../middlewares/authMiddleware.js";
 
@@ -25,5 +26,6 @@ router.post("/approve-guide/:id", isUser, isAdmin, grantGuidePermission);
 router.post("/revoke-guide/:id", isUser, isAdmin, revokeGuidePermission);
 router.get("/requested-guides", isUser, isAdmin, getRequestedGuides);
 router.get("/approved-guides", isUser, isAdmin, getApprovedGuides);
+router.put("/upload-documents", isUser, uploadUserDocuments);
 
 export default router;
