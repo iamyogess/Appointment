@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     otp: { type: Number },
     documents: { type: [String] },
     about: { type: String },
+    reservationStatus: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
